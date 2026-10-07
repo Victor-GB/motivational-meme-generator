@@ -1,7 +1,8 @@
 """Provide quote models and readers for supported file formats."""
 
+from .csv_ingestor import CsvIngestor
 from .ingestor_interface import IngestorInterface
 from .quote_model import QuoteModel
 from .txt_ingestor import TxtIngestor
 
-__all__ = ["QuoteModel", "IngestorInterface", "TxtIngestor"]
+__all__ = ["QuoteModel", "IngestorInterface", "TxtIngestor", "CsvIngestor"]
