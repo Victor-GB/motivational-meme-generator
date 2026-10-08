@@ -1,29 +1,45 @@
+"""Generate a meme given an path and a quote."""
+
 import os
 import random
+from argparse import ArgumentParser
+from pathlib import Path
 
-# @TODO Import your Ingestor and MemeEngine classes
+from MemeEngine import MemeEngine
+from QuoteEngine import Ingestor, QuoteModel
+
+SRC_DIR = Path(__file__).resolve().parent
 
 
-def generate_meme(path=None, body=None, author=None):
-    """ Generate a meme given an path and a quote """
+def generate_meme(
+    path: str | None = None,
+    body: str | None = None,
+    author: str | None = None,
+) -> str:
+    """Generate a meme given an path and a quote."""
     img = None
     quote = None
 
     if path is None:
-        images = "./_data/photos/dog/"
+        images = SRC_DIR / "_data" / "photos" / "dog/"
         imgs = []
-        for root, dirs, files in os.walk(images):
+        for root, _, files in os.walk(images):
             imgs = [os.path.join(root, name) for name in files]
 
         img = random.choice(imgs)
     else:
-        img = path[0]
+        img = path
 
     if body is None:
-        quote_files = ['./_data/DogQuotes/DogQuotesTXT.txt',
-                       './_data/DogQuotes/DogQuotesDOCX.docx',
-                       './_data/DogQuotes/DogQuotesPDF.pdf',
-                       './_data/DogQuotes/DogQuotesCSV.csv']
+        quote_files = [
+            str(SRC_DIR / "_data" / "DogQuotes" / name)
+            for name in (
+                "DogQuotesTXT.txt",
+                "DogQuotesDOCX.docx",
+                "DogQuotesPDF.pdf",
+                "DogQuotesCSV.csv",
+            )
+        ]
         quotes = []
         for f in quote_files:
             quotes.extend(Ingestor.parse(f))
@@ -31,18 +47,21 @@ def generate_meme(path=None, body=None, author=None):
         quote = random.choice(quotes)
     else:
         if author is None:
-            raise Exception('Author Required if Body is Used')
+            raise ValueError("Author is required when body is supplied.")
         quote = QuoteModel(body, author)
 
-    meme = MemeEngine('./tmp')
+    meme = MemeEngine(str(SRC_DIR.parent / "tmp"))
     path = meme.make_meme(img, quote.body, quote.author)
     return path
 
 
 if __name__ == "__main__":
-    # @TODO Use ArgumentParser to parse the following CLI arguments
-    # path - path to an image file
-    # body - quote body to add to the image
-    # author - quote author to add to the image
-    args = None
+    parser = ArgumentParser(description="Generate a meme from an image and quote.")
+    parser.add_argument("--path", help="Path to an image file.")
+    parser.add_argument("--body", help="Quote text.")
+    parser.add_argument("--author", help="Quote author.")
+    args = parser.parse_args()
+    if args.body is not None and args.author is None:
+        parser.error("--author is required when --body is supplied.")
+
     print(generate_meme(args.path, args.body, args.author))
