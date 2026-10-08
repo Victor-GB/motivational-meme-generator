@@ -2,6 +2,7 @@
 
 from .csv_ingestor import CsvIngestor
 from .docx_ingestor import DocxIngestor
+from .ingestor import Ingestor
 from .ingestor_interface import IngestorInterface
 from .pdf_ingestor import PdfIngestor
 from .quote_model import QuoteModel
@@ -14,4 +15,5 @@ __all__ = [
     "CsvIngestor",
     "DocxIngestor",
     "PdfIngestor",
+    "Ingestor",
 ]
