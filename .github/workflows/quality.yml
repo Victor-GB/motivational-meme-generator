@@ -39,7 +39,7 @@ jobs:
           cmake --build "$xpdf_setup_dir/build" --target pdftotext -j2
           sudo install -m 0755 "$xpdf_setup_dir/build/xpdf/pdftotext" /usr/local/bin/pdftotext
           echo "/usr/local/bin" >> "$GITHUB_PATH"
-          /usr/local/bin/pdftotext -v
+          /usr/local/bin/pdftotext -v || test "$?" -eq 99
 
       - name: Run full quality checks
         run: ./scripts/check.sh

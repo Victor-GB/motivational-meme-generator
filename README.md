@@ -50,7 +50,7 @@ sudo install -m 0755 "$xpdf_setup_dir/build/xpdf/pdftotext" /usr/local/bin/pdfto
 export PATH="/usr/local/bin:$PATH"
 hash -r
 command -v pdftotext
-pdftotext -v
+pdftotext -v || test "$?" -eq 99
 ```
 
 Run commands in order and stop if one fails. The checksum must pass.
