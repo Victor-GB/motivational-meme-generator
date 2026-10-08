@@ -1,0 +1,47 @@
+name: Quality checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14.4"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements-dev.txt
+      - name: Build Xpdf converter
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libfreetype-dev curl
+          xpdf_setup_dir="$(mktemp -d)"
+          curl --fail --location https://dl.xpdfreader.com/xpdf-4.06.tar.gz -o "$xpdf_setup_dir/xpdf.tar.gz"
+          printf '%s  %s\n' '1c38f527c46caee0f712386d42a885b96a31ed9ce11904e872559859894d137e' "$xpdf_setup_dir/xpdf.tar.gz" | sha256sum --check
+          tar -xzf "$xpdf_setup_dir/xpdf.tar.gz" -C "$xpdf_setup_dir"
+          cmake -S "$xpdf_setup_dir/xpdf-4.06" -B "$xpdf_setup_dir/build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$xpdf_setup_dir/build" --target pdftotext -j2
+          sudo install -m 0755 "$xpdf_setup_dir/build/xpdf/pdftotext" /usr/local/bin/pdftotext
+          echo "/usr/local/bin" >> "$GITHUB_PATH"
+          /usr/local/bin/pdftotext -v || test "$?" -eq 99
+
+      - name: Run full quality checks
+        run: |
+          source .venv/bin/activate
+          ./scripts/check.sh
