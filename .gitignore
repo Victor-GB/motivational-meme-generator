@@ -21,6 +21,7 @@ coverage.xml
 # Generated memes and temporary files
 tmp/
 src/static/generated/
+src/static/*.jpg
 
 # Packaging
 build/
