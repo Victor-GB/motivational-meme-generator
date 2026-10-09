@@ -2,6 +2,7 @@
 
 from .csv_ingestor import CsvIngestor
 from .docx_ingestor import DocxIngestor
+from .exceptions import IngestorError, UnsupportedFileTypeError
 from .ingestor import Ingestor
 from .ingestor_interface import IngestorInterface
 from .pdf_ingestor import PdfIngestor
@@ -16,4 +17,6 @@ __all__ = [
     "DocxIngestor",
     "PdfIngestor",
     "Ingestor",
+    "IngestorError",
+    "UnsupportedFileTypeError",
 ]

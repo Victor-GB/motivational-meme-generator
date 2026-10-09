@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from .exceptions import IngestorError, UnsupportedFileTypeError
 from .ingestor_interface import IngestorInterface
 from .quote_model import QuoteModel
 from .txt_ingestor import TxtIngestor
@@ -16,16 +17,31 @@ class PdfIngestor(IngestorInterface):
 
     @classmethod
     def parse(cls, path: str) -> list[QuoteModel]:
-        """
-        Parse a PDF file and return a list of QuoteModel instances.
+        """Read quotes form a PDF converted to text by Xpdf.
 
-        :param path: The path to the PDF file.
-        :return: A list of QuoteModel instances.
+        Raise IngestorError when the conversion or text reading fails.
         """
         if not cls.can_ingest(path):
-            raise ValueError(f"Cannot ingest file with extension: {path}")
+            raise UnsupportedFileTypeError(
+                f"PDF reader cannot ingest {path!r}; expected a .pdf file"
+            )
 
-        with TemporaryDirectory() as temp_dir:
-            tmp = str(Path(temp_dir) / "quotes.txt")
-            subprocess.run(["pdftotext", "-layout", path, tmp], check=True)
-            return TxtIngestor.parse(tmp)
+        try:
+            with TemporaryDirectory() as temp_dir:
+                tmp = str(Path(temp_dir) / "quotes.txt")
+                subprocess.run(
+                    ["pdftotext", "-layout", path, tmp],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                return TxtIngestor.parse(tmp)
+        except subprocess.CalledProcessError as exc:
+            reason = exc.stderr.strip() if exc.stderr else str(exc)
+            raise IngestorError(
+                f"Could not convert PDF quote file {path!r}: {reason}"
+            ) from exc
+        except (OSError, IngestorError) as exc:
+            raise IngestorError(
+                f"Could not read PDF quote file {path!r}: {exc}"
+            ) from exc

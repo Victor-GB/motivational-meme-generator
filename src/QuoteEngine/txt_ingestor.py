@@ -1,5 +1,6 @@
 """Text file ingestor for quotes."""
 
+from .exceptions import IngestorError, UnsupportedFileTypeError
 from .ingestor_interface import IngestorInterface
 from .quote_model import QuoteModel
 
@@ -11,28 +12,24 @@ class TxtIngestor(IngestorInterface):
 
     @classmethod
     def parse(cls, path: str) -> list[QuoteModel]:
-        """
-        Parse a text file and return a list of QuoteModel instances.
+        """Read valid quotes, skipping malformed or incomplete lines.
 
-        :param path: The path to the text file.
-        :return: A list of QuoteModel instances.
+        Raise IngestorError when the file cannot be read or decoded.
         """
         if not cls.can_ingest(path):
-            raise ValueError(f"Cannot ingest file with extension: {path}")
+            raise UnsupportedFileTypeError(
+                f"TXT reader cannot ingest {path}; expected a .txt file"
+            )
 
-        quotes = []
-        with open(path, encoding="utf-8-sig") as file:
-            for line in file:
-                line = line.strip()
-                if line:
-                    body, author = line.rsplit(" - ", 1)
-                    body = (
-                        body.strip()
-                    )  # Remove any leading/trailing whitespace from body
-                    if len(body) >= 2 and body.startswith('"') and body.endswith('"'):
-                        body = body[1:-1]  # Remove surrounding quotes if present
-                    author = (
-                        author.strip()
-                    )  # Remove any leading/trailing whitespace from author
-                    quotes.append(QuoteModel(body, author))
+        quotes: list[QuoteModel] = []
+        try:
+            with open(path, encoding="utf-8-sig") as file:
+                for line in file:
+                    quote = cls._quote_from_line(line)
+                    if quote is not None:
+                        quotes.append(quote)
+        except (OSError, UnicodeDecodeError) as exc:
+            raise IngestorError(
+                f"Could not read TXT quote file {path!r}: {exc}"
+            ) from exc
         return quotes

@@ -23,6 +23,24 @@ class IngestorInterface(ABC):
         ext = Path(path).suffix.lower()
         return ext in cls.allowed_extensions
 
+    @staticmethod
+    def _quote_from_line(line: str) -> QuoteModel | None:
+        """Build a quote from a valid line, or return None."""
+        line = line.strip()
+        if " - " not in line:
+            return None
+        body, author = line.rsplit(" - ", 1)
+        body = body.strip()
+        author = author.strip()
+
+        if len(body) >= 2 and body.startswith('"') and body.endswith('"'):
+            body = body[1:-1].strip()
+
+        if not body or not author:
+            return None
+
+        return QuoteModel(body, author)
+
     @classmethod
     @abstractmethod
     def parse(cls, path: str) -> list[QuoteModel]:
@@ -32,4 +50,6 @@ class IngestorInterface(ABC):
         :param path: The file path to parse.
         :return: A list of QuoteModel instances.
         """
-        raise NotImplementedError("Subclasses must implement the parse method.")
+        raise NotImplementedError(
+            "Subclasses must implement the parse method."
+        )

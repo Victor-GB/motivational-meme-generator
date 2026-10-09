@@ -2,7 +2,7 @@
 
 import pytest
 
-from QuoteEngine import DocxIngestor, QuoteModel
+from QuoteEngine import DocxIngestor, QuoteModel, UnsupportedFileTypeError
 
 
 def test_parse_supplied_dog_quotes_docx() -> None:
@@ -14,7 +14,9 @@ def test_parse_supplied_dog_quotes_docx() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -26,7 +28,7 @@ def test_parse_supplied_dog_quotes_docx() -> None:
 
 
 def test_parse_supplied_simple_lines_docx() -> None:
-    """Test that DocxIngestor correctly parses a DOCX file with simple lines."""
+    """Test ßDocxIngestor correctly parses a docx file with simple lines."""
     path = "src/_data/SimpleLines/SimpleLines.docx"
 
     quotes = DocxIngestor.parse(path)
@@ -34,7 +36,9 @@ def test_parse_supplied_simple_lines_docx() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -47,6 +51,6 @@ def test_parse_supplied_simple_lines_docx() -> None:
 
 
 def test_parse_rejects_unsupported_file_extension() -> None:
-    """Test that DocxIngestor raises a ValueError for unsupported file extensions."""
-    with pytest.raises(ValueError):
+    """Tests rejects unsupported file extensions."""
+    with pytest.raises(UnsupportedFileTypeError):
         DocxIngestor.parse("quotes.pdf")
