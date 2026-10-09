@@ -2,7 +2,7 @@
 
 
 class QuoteModel:
-    """A simple QuoteModel class to represent a quote with its body and author."""
+    """Represent a quote with its body and author."""
 
     def __init__(self, body: str, author: str) -> None:
         """
@@ -20,4 +20,8 @@ class QuoteModel:
 
         :return: A string in the format '"<body>" - <author>'.
         """
+        return f'"{self.body}" - {self.author}'
+
+    def __repr__(self) -> str:
+        """Represent the quote as a quoted body followed by its author."""
         return f'"{self.body}" - {self.author}'

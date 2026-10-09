@@ -14,7 +14,7 @@ class _TextReader(IngestorInterface):
 def test_ingestor_interface_cannot_be_instantiated() -> None:
     """Test that IngestorInterface cannot be instantiated directly."""
     with pytest.raises(TypeError):
-        IngestorInterface()
+        IngestorInterface()  # type: ignore[abstract]
 
 
 @pytest.mark.parametrize(

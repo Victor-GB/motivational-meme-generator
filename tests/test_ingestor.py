@@ -7,14 +7,16 @@ from QuoteEngine import Ingestor, QuoteModel
 
 @mark.parametrize("extension", ["txt", "csv", "docx", "pdf"])
 def test_selects_matching_reader(extension: str) -> None:
-    """Test that Ingestor correctly selects the matching reader for each file type."""
+    """Test reader selection for each supported file type."""
     path = f"src/_data/SimpleLines/SimpleLines.{extension}"
     quotes = Ingestor.parse(path)
     assert all(isinstance(quote, QuoteModel) for quote in quotes), (
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
     assert quotes_r == [
         ("Line 1", "Author 1"),

@@ -1,10 +1,13 @@
 """Test the pdf ingestor class."""
 
-import subprocess
-
 import pytest
 
-from QuoteEngine import PdfIngestor, QuoteModel
+from QuoteEngine import (
+    IngestorError,
+    PdfIngestor,
+    QuoteModel,
+    UnsupportedFileTypeError,
+)
 
 
 def test_parse_supplied_dog_quotes_pdf() -> None:
@@ -17,7 +20,9 @@ def test_parse_supplied_dog_quotes_pdf() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
     assert quotes_r == [
         ("Treat yo self", "Fluffles"),
@@ -34,7 +39,9 @@ def test_parse_supplied_simple_lines_pdf() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
     assert quotes_r == [
         ("Line 1", "Author 1"),
@@ -46,12 +53,12 @@ def test_parse_supplied_simple_lines_pdf() -> None:
 
 
 def test_parse_rejects_unsupported_file_extension() -> None:
-    """Test that PdfIngestor raises a ValueError for unsupported file extensions."""
-    with pytest.raises(ValueError):
+    """Reject unsupported file extensions."""
+    with pytest.raises(UnsupportedFileTypeError):
         PdfIngestor.parse("quotes.txt")
 
 
 def test_parse_missing_pdf_raises_conversion_error() -> None:
     """Report conversion failure when the PDF does not exist."""
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(IngestorError):
         PdfIngestor.parse("src/_data/DogQuotes/missing.pdf")

@@ -2,7 +2,7 @@
 
 import pytest
 
-from QuoteEngine import CsvIngestor, QuoteModel
+from QuoteEngine import CsvIngestor, QuoteModel, UnsupportedFileTypeError
 
 
 def test_parse_supplied_dog_quotes_csv() -> None:
@@ -14,7 +14,9 @@ def test_parse_supplied_dog_quotes_csv() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -32,7 +34,9 @@ def test_parse_supplied_simple_lines_csv() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -45,6 +49,6 @@ def test_parse_supplied_simple_lines_csv() -> None:
 
 
 def test_parse_rejects_unsupported_file_extension() -> None:
-    """Test that CsvIngestor raises a ValueError for unsupported file extensions."""
-    with pytest.raises(ValueError):
+    """Reject unsupported file extensions."""
+    with pytest.raises(UnsupportedFileTypeError):
         CsvIngestor.parse("quotes.pdf")

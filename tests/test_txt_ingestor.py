@@ -2,7 +2,7 @@
 
 import pytest
 
-from QuoteEngine import QuoteModel, TxtIngestor
+from QuoteEngine import QuoteModel, TxtIngestor, UnsupportedFileTypeError
 
 
 def test_pars_supplied_dog_quotes() -> None:
@@ -14,7 +14,9 @@ def test_pars_supplied_dog_quotes() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -32,7 +34,9 @@ def test_parse_supplied_simple_lines() -> None:
         "All items should be instances of QuoteModel."
     )
     quotes_r = [
-        (quote.body, quote.author) for quote in quotes if isinstance(quote, QuoteModel)
+        (quote.body, quote.author)
+        for quote in quotes
+        if isinstance(quote, QuoteModel)
     ]
 
     assert quotes_r == [
@@ -45,6 +49,6 @@ def test_parse_supplied_simple_lines() -> None:
 
 
 def test_parse_rejects_unsupported_file_extension() -> None:
-    """Test that TxtIngestor raises a ValueError for unsupported file extensions."""
-    with pytest.raises(ValueError):
+    """Reject unsupported file extensions."""
+    with pytest.raises(UnsupportedFileTypeError):
         TxtIngestor.parse("quotes.pdf")

@@ -1,7 +1,11 @@
 """Read quotes from DOCX documents."""
 
-import docx
+from zipfile import BadZipFile
 
+import docx
+from docx.opc.exceptions import PackageNotFoundError
+
+from .exceptions import IngestorError, UnsupportedFileTypeError
 from .ingestor_interface import IngestorInterface
 from .quote_model import QuoteModel
 
@@ -13,27 +17,34 @@ class DocxIngestor(IngestorInterface):
 
     @classmethod
     def parse(cls, path: str) -> list[QuoteModel]:
-        """
-        Parse a DOCX file and return a list of QuoteModel instances.
+        """Read valid quotes, skipping malformed or incomplete paragraphs.
 
-        :param path: The path to the DOCX file.
-        :return: A list of QuoteModel instances.
+        Raise IngestorError when the document cannot be opened or parsed.
         """
         if not cls.can_ingest(path):
-            raise ValueError(f"Cannot ingest file with extension: {path}")
+            raise UnsupportedFileTypeError(
+                f"Cannot ingest file with extension: {path!r}; "
+                "expected a .docx file."
+            )
 
-        quotes = []
-        doc = docx.Document(path)
+        try:
+            doc = docx.Document(path)
+        except (
+            OSError,
+            PackageNotFoundError,
+            BadZipFile,
+            ValueError,
+            KeyError,
+            SyntaxError,
+        ) as exc:
+            raise IngestorError(
+                f"Could not read DOCX quote file {path!r}: {exc}"
+            ) from exc
+
+        quotes: list[QuoteModel] = []
         for para in doc.paragraphs:
-            line = para.text.strip()
-            if line:
-                body, author = line.rsplit(" - ", 1)
-                body = body.strip()  # Remove any leading/trailing whitespace from body
-                if len(body) >= 2 and body.startswith('"') and body.endswith('"'):
-                    body = body[1:-1]  # Remove surrounding quotes if present
-                author = (
-                    author.strip()
-                )  # Remove any leading/trailing whitespace from author
-                quotes.append(QuoteModel(body, author))
+            quote = cls._quote_from_line(para.text)
+            if quote is not None:
+                quotes.append(quote)
 
         return quotes

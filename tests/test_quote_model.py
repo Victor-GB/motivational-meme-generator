@@ -19,4 +19,7 @@ def test_quote_model_str_representation() -> None:
     author = "Oscar Wilde"
     quote = QuoteModel(body, author)
 
-    assert str(quote) == '"Be yourself; everyone else is already taken." - Oscar Wilde'
+    assert (
+        str(quote)
+        == '"Be yourself; everyone else is already taken." - Oscar Wilde'
+    )

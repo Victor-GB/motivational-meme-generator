@@ -84,6 +84,18 @@ ptal() (
     pta 2>&1 | tee "$PY_PROJECT_ROOT/tmp/pytest-all.log"
 )
 
+cdt() {
+    cd "$PY_PROJECT_ROOT/tests"
+}
+
+cdr() {
+    cd "$PY_PROJECT_ROOT"
+}
+
+cds() {
+    cd "$PY_PROJECT_ROOT/src"
+}
+
 al() {
     cat <<'HELP'
 frm     Fix and format the newest Python file in the current directory.
@@ -94,6 +106,9 @@ pt      Run pytest on the newest Python file in the current directory.
 pta     Run the complete project test suite.
 ptl     Same as pt, saving output to tmp/pytest-latest.log.
 ptal    Same as pta, saving output to tmp/pytest-all.log.
+cdt     Change to the project's tests directory.
+cdr     Change to the project root directory.
+cds     Change to the project's src directory.
 al      Show this shortcut reference.
 HELP
 }

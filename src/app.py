@@ -6,17 +6,14 @@ from tempfile import TemporaryDirectory
 
 import requests
 from flask import Flask, abort, render_template, request, url_for
-from PIL import UnidentifiedImageError
 
 # @TODO Import your Ingestor and MemeEngine classes
-from MemeEngine import MemeEngine
-from QuoteEngine import Ingestor, QuoteModel
+from MemeEngine import MemeEngine, MemeEngineError
+from QuoteEngine import Ingestor, IngestorError, QuoteModel
 
 SRC_DIR = Path(__file__).resolve().parent
 
 app = Flask(__name__)
-
-meme = MemeEngine(str(SRC_DIR / "static"))
 
 
 def setup() -> tuple[list[QuoteModel], list[str]]:
@@ -37,11 +34,21 @@ def setup() -> tuple[list[QuoteModel], list[str]]:
 
     images_path = SRC_DIR / "_data" / "photos" / "dog"
     imgs = [str(path) for path in images_path.glob("*.jpg")]
+    if not quotes:
+        raise IngestorError("No valid quotes found in the quote files.")
+    if not imgs:
+        raise MemeEngineError(
+            f"No sources images found in {str(images_path)!r}"
+        )
 
     return quotes, imgs
 
 
-quotes, imgs = setup()
+try:
+    meme = MemeEngine(str(SRC_DIR / "static"))
+    quotes, imgs = setup()
+except (IngestorError, MemeEngineError, OSError) as exc:
+    raise SystemExit(f"Could not start the meme app: {exc}") from None
 
 
 @app.route("/")
@@ -49,7 +56,10 @@ def meme_rand() -> str:
     """Generate a random meme."""
     img = random.choice(imgs)
     quote = random.choice(quotes)
-    output_path = meme.make_meme(img, quote.body, quote.author)
+    try:
+        output_path = meme.make_meme(img, quote.body, quote.author)
+    except MemeEngineError as exc:
+        abort(500, description=f"Could not generate a meme: {exc}")
     image_url = url_for("static", filename=Path(output_path).name)
 
     return render_template("meme.html", path=image_url)
@@ -76,9 +86,13 @@ def meme_post() -> str:
             with TemporaryDirectory() as temp_dir:
                 downloaded_image = Path(temp_dir) / "image"
                 downloaded_image.write_bytes(response.content)
-                output_path = meme.make_meme(str(downloaded_image), body, author)
-    except requests.RequestException, UnidentifiedImageError:
-        abort(400, description="Could not download or read the supplied image")
+                output_path = meme.make_meme(
+                    str(downloaded_image), body, author
+                )
+    except (requests.RequestException, MemeEngineError) as exc:
+        abort(400, description=f"Could not create the supplied meme: {exc}")
+    except OSError as exc:
+        abort(500, description=f"Could not store the downloaded image: {exc}")
 
     image_url = url_for("static", filename=Path(output_path).name)
     return render_template("meme.html", path=image_url)

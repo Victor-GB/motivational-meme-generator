@@ -29,7 +29,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-The Python requirements install Flask, Pillow, python-docx and Requests.
+The Python requirements install Flask, Pillow, pandas, python-docx and Requests.
 They do not install Xpdf. PDF ingestion invokes Xpdf through subprocess;
 the similarly named Poppler executable is not the converter used for this project.
 
@@ -131,9 +131,24 @@ output = engine.make_meme(
 print(output)
 ```
 
-`Ingestor` selects a reader by file extension. `MemeEngine` preserves image
-proportions, limits width to 500 pixels, draws the quote and author, and
-returns the saved JPEG path.
+`Ingestor` asks its registered readers whether they support the file and
+delegates parsing to the matching reader. TXT and DOCX readers skip malformed
+or incomplete quote lines.
+
+`MemeEngine` accepts JPEG and PNG images, preserves their proportions and
+limits output width to 500 pixels. It places the quote and author at a random
+position within the image bounds and returns the saved JPEG path.
+
+## Error handling
+
+Quote readers raise `IngestorError` for reading or parsing failures.
+Unsupported formats raise `UnsupportedFileTypeError`.
+`MemeEngineError` reports image-generation failures, including captions
+that cannot fit within the image.
+
+The CLI displays expected error messages and exits with a non-zero status.
+Flask reports invalid submissions with HTTP 400 and application failures
+with HTTP 500. Missing startup resources produce a clear startup message.
 
 ## Development checks
 
