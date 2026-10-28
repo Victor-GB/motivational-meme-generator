@@ -5,5 +5,5 @@ pip-audit==2.10.1
 pre-commit==4.6.2
 pytest==9.1.1
 pytest-cov==7.1.0
-ruff==0.16.10
+ruff==0.17.2
 pandas-stubs==3.0.5.260914
